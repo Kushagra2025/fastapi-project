@@ -8,7 +8,9 @@ from . import models, schemas
 from .database import engine, get_db
 from sqlalchemy.orm import Session
 from typing import List
+from passlib.context import CryptContext
 
+pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
 models.Base.metadata.create_all(bind=engine)
 
 app = FastAPI()
@@ -95,3 +97,19 @@ def delete_post(id: int):
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=f"id {id} does not exist.")
     
     return Response(status_code=status.HTTP_204_NO_CONTENT)
+
+
+@app.post("/users", status_code=status.HTTP_201_CREATED, response_model=schemas.UserOutput)
+def create_user(user: schemas.UserCreate, db: Session = Depends(get_db)):
+
+    # hashing the password so that actual password is not stored in the database
+    hashed_password = pwd_context.hash(user.password)
+    user.password = hashed_password
+
+    new_user = models.User(**user.model_dump())
+    db.add(new_user)
+    db.commit()
+    db.refresh(new_user)
+
+    return new_user
+
