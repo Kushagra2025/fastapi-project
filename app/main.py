@@ -8,9 +8,10 @@ from . import models, schemas
 from .database import engine, get_db
 from sqlalchemy.orm import Session
 from typing import List
-from passlib.context import CryptContext
+from pwdlib import PasswordHash
 
-pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
+password_hash = PasswordHash.recommended()
+
 models.Base.metadata.create_all(bind=engine)
 
 app = FastAPI()
@@ -103,7 +104,8 @@ def delete_post(id: int):
 def create_user(user: schemas.UserCreate, db: Session = Depends(get_db)):
 
     # hashing the password so that actual password is not stored in the database
-    hashed_password = pwd_context.hash(user.password)
+
+    hashed_password = password_hash.hash(user.password)
     user.password = hashed_password
 
     new_user = models.User(**user.model_dump())

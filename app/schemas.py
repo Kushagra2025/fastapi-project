@@ -1,4 +1,4 @@
-from pydantic import BaseModel, ConfigDict, EmailStr
+from pydantic import BaseModel, EmailStr
 from datetime import datetime
 
 class Post(BaseModel):
@@ -27,4 +27,5 @@ class UserOutput(BaseModel):
     email: EmailStr
     created_at: datetime
 
-    model_config = ConfigDict(from_attributes=True)
+    class ConfigDict:
+        from_attributes = True
